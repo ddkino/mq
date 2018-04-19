@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package models.user;
+
+message Model {
+    
+    message Error {
+        string msg = 1;
+        string code = 2;
+    }
+    string user_id = 2;
+    string username = 3;
+    string email = 4;
+    string password = 5;
+    string datetime_created_at = 6;
+    string datetime_updated_at = 7;
+}

@@ -1,0 +1,4 @@
+FROM scratch
+ADD main /
+EXPOSE 4222 9042:9042
+CMD ["/main"]

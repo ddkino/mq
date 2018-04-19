@@ -1,0 +1,66 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/user/mq/broker"
+	"github.com/user/mq/chassis"
+	"github.com/user/mq/stores/cassandra"
+	"github.com/user/mq/stores/cassandra/queries"
+
+	"encoding/json"
+	"runtime"
+
+	"github.com/nats-io/go-nats"
+)
+
+func usage(env string, signature string) {
+	log.Fatalf("Usage: --env=<ENV>  \n environnement :%s \n signature:%s \n", env, signature)
+}
+
+func main() {
+	signature := chassis.Signature{
+		Namespace:   "store.user",
+		Topic:       "byid",
+		Description: "",
+		Version:     "0.1",
+	}
+	SIGNATURE := fmt.Sprintf("%+v", signature)
+	//-------------- FLAGS
+	log.SetFlags(0)
+	ENV := flag.String("env", "development", "environnement")
+	flag.Parse()
+	args := flag.Args()
+	if len(args) > 0 {
+		if args[0] == "h" || args[0] == "help" {
+			usage(*ENV, SIGNATURE)
+		}
+	}
+
+	//-------------- CONNECTION
+	natsBroker := broker.NewBrokerNats(*ENV)
+	natsConnection, err := natsBroker.Connect()
+	if err != nil {
+		panic(err)
+	}
+	cassandraStore := cassandra.New(*ENV)
+	cassandraSession, err := cassandraStore.Connect()
+	if err != nil {
+		panic(err)
+	}
+	//-------------- SUBSCRIPTION
+	var topic = fmt.Sprintf("%s.%s", signature.Namespace, signature.Topic)
+	if *ENV == "development" {
+		fmt.Printf("topic : %s", topic)
+	}
+	natsConnection.Subscribe(topic, func(msg *nats.Msg) {
+		// <<<<<<< insert your code in handler file
+		handler.Handler(msg, ENV, natsConnection, cassandraSession)
+		// >>>>>>> end code
+	})
+	// Keep the connection alive
+	runtime.Goexit()
+}

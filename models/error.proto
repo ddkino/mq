@@ -1,0 +1,8 @@
+syntax="proto3";
+
+package error;
+
+message Type {
+    string msg = 1;
+    string code = 2;
+}

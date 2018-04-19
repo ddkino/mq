@@ -1,0 +1,15 @@
+# FROM scratch
+FROM golang:1.10.0-alpine as alpine
+COPY ./templates /templates
+ADD main /
+
+
+FROM scratch
+EXPOSE 4222 6222 8222 587
+COPY --from=alpine /templates/ /templates
+COPY --from=alpine /main /
+COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# keep cmd
+CMD ["/main", "--topic=welcome", "--env=production"]
+# ENTRYPOINT [ "/main" ]
+
